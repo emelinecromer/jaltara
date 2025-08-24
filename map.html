@@ -64,10 +64,10 @@
 	  maxZoom: 19
 	});
 
-	const plain = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	const street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 	  attribution: '© OpenStreetMap contributors',
 	  maxZoom: 19
-	});
+	}).addTo(map);
 	
 	// Transparent labels overlay (borders, roads, place names)
 	const labels = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
@@ -77,10 +77,52 @@
 
 	const baseMaps = {
 	  "Satellite View": satellite,
-	  "Street View": plain
+	  "Street View": street
 	};
 
-	L.control.layers(baseMaps).addTo(map);
+	// extend custom class ToggleControl from leaflet's Control class
+	const ToggleControl = L.Control.extend({
+		onAdd: function(map) {
+			// create new HTML button element
+			const btn = L.DomUtil.create('button', '');
+
+			// variable to track the currently active layer
+			let current = 'street';
+	
+	    	// text inside button
+	    	btn.innerHTML = "Satellite View";
+	
+		    // inline styling for button
+		    btn.style.backgroundColor = 'white';
+		    btn.style.padding = '5px';
+		    btn.style.cursor = 'pointer';
+		    btn.style.border = '1px solid gray';
+		
+		    btn.onclick = function() {
+			    // if satellite layer currently active
+			    if (current === 'satellite') {
+			        map.removeLayer(satellite);
+			        street.addTo(map);
+			        current = 'street';
+					btn.innerHTML = "Satellite View";
+			    } else {
+			    // if street layer currently active
+			        map.removeLayer(street);
+			        satellite.addTo(map);
+			        current = 'satellite';
+					btn.innerHTML = "Street View";
+		    	}
+			}
+	
+	    // return to place it on the map
+	    return btn;
+			
+		}
+	});
+
+	// create new ToggleControl button toggle and add to map
+	const toggle = new ToggleControl({ position: 'topright' });
+	toggle.addTo(map);
 
 	const markers = L.markerClusterGroup({
 	  maxClusterRadius: 30, // cluster markers within x pixels of each other
@@ -133,6 +175,7 @@
 
 </body>
 </html>
+
 
 
 
