@@ -77,7 +77,7 @@
 	  disableClusteringAtZoom: 18
 	});
 
-	fetch('https://drive.google.com/uc?export=download&id=1tiz-xm69VJ8jcPKt4AZY4qO_mbEv9_Ds') // get file
+	fetch('https://raw.githubusercontent.com/savegroundwater/jaltara/d25ca6ebcef06176a284c7eb0c49c106f56f47ba/pit_data.txt') // get file
 	.then(res => res.text()) // read as plain text
 	.then(text => {
 		const lines = text.trim().split('\n'); // split into lines
@@ -121,4 +121,5 @@
 
 </body>
 </html>
+
 
