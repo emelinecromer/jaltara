@@ -131,6 +131,11 @@
 	  disableClusteringAtZoom: 18
 	});
 
+	let minLat = Infinity;
+	let maxLat = -Infinity;
+	let minLon = Infinity;
+	let maxLon = -Infinity;
+
 	fetch('https://raw.githubusercontent.com/savegroundwater/jaltara/d25ca6ebcef06176a284c7eb0c49c106f56f47ba/pit_data.txt') // get file
 	.then(res => res.text()) // read as plain text
 	.then(text => {
@@ -144,10 +149,15 @@
 			const pitLat = parseFloat(columns[1]);
 			const pitLon = parseFloat(columns[2]);
 			const pitId = columns[0];
-			
-			const popupContent = `${pitId}`;
 
 			if (!isNaN(pitLat) && !isNaN(pitLon)) {
+		        if (pitLat < minLat) minLat = pitLat;
+		        if (pitLat > maxLat) maxLat = pitLat;
+		        if (pitLon < minLon) minLon = pitLon;
+		        if (pitLon > maxLon) maxLon = pitLon;
+			
+				const popupContent = `${pitId}`;
+	
 				const marker = L.marker([pitLat, pitLon]);
 				marker.bindPopup(popupContent);
 
@@ -167,14 +177,22 @@
 
 	map.addLayer(markers);
 
+	const bounds = L.latLngBounds(
+        L.latLng(minLat - 1, minLon - 1),
+        L.latLng(maxLat + 1, maxLon + 1)
+    );
+    map.fitBounds(bounds);
+
 	});
 
+	
 </script>
 
 
 
 </body>
 </html>
+
 
 
 
