@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<base target="_top">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<title>JalTara Pit Map</title>
+	
+	<link rel="shortcut icon" type="image/png" href="https://images.squarespace-cdn.com/content/686b6207a7c996116ca9f6cc/0e917f42-0227-4261-8ad4-d14e1a1febab/%C2%A92_Save+Groundwater_icon_original_HD_png.png?content-type=image%2Fpng" />
+
+    	<!-- Leaflet CSS -->
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+	
+	<!-- Leaflet.markercluster CSS -->
+	<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+	<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+	
+	<!-- Leaflet JS -->
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+	
+	<!-- Leaflet.markercluster JS -->
+	<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+
+	<style>
+		html, body {
+			height: 100%;
+			margin: 0;
+		}
+		.leaflet-container {
+			height: 800px;
+			width: 1600px;
+			max-width: 100%;
+			max-height: 100%;
+		}
+	</style>
+
+	
+</head>
+<body>
+
+
+
+<div id="map" style="width: 1600px; height: 800px;"></div>
+<script>
+	
+	const southWest = L.latLng(-90, -180); // bottom-left corner of the world
+	const northEast = L.latLng(90, 180);   // top-right corner of the world
+	const bounds = L.latLngBounds(southWest, northEast);
+	
+	const map = L.map('map', {
+  	center: [19.84529409208099, 76.27065167353523],
+  	zoom: 5,
+	minZoom: 2,
+	maxZoom: 18,
+	maxBounds: bounds,
+	maxBoundsViscosity: 1.0
+	});
+
+	// Satellite base layer
+	const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+	  attribution: 'Tiles &copy; Esri',
+	  maxZoom: 19
+	}).addTo(map);
+	
+	// Transparent labels overlay (borders, roads, place names)
+	const labels = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+	  attribution: 'Labels &copy; Esri',
+	  maxZoom: 19
+	}).addTo(map);
+
+	const markers = L.markerClusterGroup({
+	  maxClusterRadius: 30, // cluster markers within x pixels of each other
+	  spiderfyOnMaxZoom: true, // when at max zoom, clicking a cluster expands markers around it
+	  showCoverageOnHover: true, // highlight cluster area on mouseover
+	  disableClusteringAtZoom: 18
+	});
+
+	fetch('https://drive.google.com/uc?export=download&id=1tiz-xm69VJ8jcPKt4AZY4qO_mbEv9_Ds') // get file
+	.then(res => res.text()) // read as plain text
+	.then(text => {
+		const lines = text.trim().split('\n'); // split into lines
+
+		const header = lines.shift().split('\t'); // gives column names
+
+		lines.forEach(function(line) {
+			const columns = line.split(/\t|(?=https?:\/\/)/); // splits into columns
+
+			const pitLat = parseFloat(columns[1]);
+			const pitLon = parseFloat(columns[2]);
+			const pitId = columns[0];
+			
+			const popupContent = `${pitId}`;
+
+			if (!isNaN(pitLat) && !isNaN(pitLon)) {
+				const marker = L.marker([pitLat, pitLon]);
+				marker.bindPopup(popupContent);
+
+				// Show popup on mouseover
+				marker.on('mouseover', function() {
+				this.openPopup();
+				});
+				
+				// Hide popup on mouseout
+				marker.on('mouseout', function() {
+				this.closePopup();
+				});
+				
+				markers.addLayer(marker);
+			}
+		});
+
+	map.addLayer(markers);
+
+	});
+
+</script>
+
+
+
+</body>
+</html>
+
