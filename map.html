@@ -44,6 +44,14 @@
 
 <div id="map" style="width: 1600px; height: 800px;"></div>
 <script>
+
+	function toTitleCase(str) {
+		str = str.split(' ') // split at spaces
+		str = str.map(word => word.charAt(0).toUpperCase() + word.slice(1)) // capitalize first letter
+		str = str.join(' '); // join back into a single string
+
+		return str;
+	}
 	
 	const southWest = L.latLng(-90, -180); // bottom-left corner of the world
 	const northEast = L.latLng(90, 180);   // top-right corner of the world
@@ -55,7 +63,7 @@
 	minZoom: 2,
 	maxZoom: 18,
 	maxBounds: bounds,
-	maxBoundsViscosity: 1.0
+	maxBoundsViscosity: 0.0
 	});
 
 	// Satellite base layer
@@ -145,19 +153,36 @@
 
 		lines.forEach(function(line) {
 			const columns = line.split(/\t|(?=https?:\/\/)/); // splits into columns
-
+			
+			const pitId = columns[0];
 			const pitLat = parseFloat(columns[1]);
 			const pitLon = parseFloat(columns[2]);
-			const pitId = columns[0];
+			const village = toTitleCase(columns[3]);
+			const date = columns[4];
+			const image = columns[5];
 
 			if (!isNaN(pitLat) && !isNaN(pitLon)) {
 		        if (pitLat < minLat) minLat = pitLat;
 		        if (pitLat > maxLat) maxLat = pitLat;
 		        if (pitLon < minLon) minLon = pitLon;
 		        if (pitLon > maxLon) maxLon = pitLon;
-			
-				const popupContent = `${pitId}`;
-	
+
+				let popupContent = '<div style="text-align: center;">';
+
+				if (image && image !== '..') {
+				  popupContent += `<img src="${image}" alt="Pit Image" width="200" style="display:block; margin: 0 auto;"><br>`;
+				}
+				
+				if (village && village !== '..') {
+				  popupContent += `<strong>Village:</strong> ${village}<br>`;
+				}
+				
+				if (date && date !== '..') {
+				  popupContent += `<strong>Date:</strong> ${date}`;
+				}
+				
+				popupContent += '</div>';
+
 				const marker = L.marker([pitLat, pitLon]);
 				marker.bindPopup(popupContent);
 
@@ -192,6 +217,7 @@
 
 </body>
 </html>
+
 
 
 
