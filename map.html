@@ -152,14 +152,15 @@
 		const header = lines.shift().split('\t'); // gives column names
 
 		lines.forEach(function(line) {
-			const columns = line.split(/\t|(?=https?:\/\/)/); // splits into columns
+			const columns = line.split('\t'); // splits into columns
 			
 			const pitId = columns[0];
 			const pitLat = parseFloat(columns[1]);
 			const pitLon = parseFloat(columns[2]);
 			const village = toTitleCase(columns[3]);
-			const date = columns[4];
-			const image = columns[5];
+			const type = columns[4];
+			const date = columns[5];
+			const image = columns[6].trim();
 
 			if (!isNaN(pitLat) && !isNaN(pitLon)) {
 		        if (pitLat < minLat) minLat = pitLat;
@@ -170,7 +171,11 @@
 				let popupContent = '<div style="text-align: center;">';
 
 				if (image && image !== '..') {
-				  popupContent += `<img src="${image}" alt="Pit Image" width="200" style="display:block; margin: 0 auto;"><br>`;
+				  popupContent += `
+				    <div style="width:150px; height:150px; overflow:hidden; display:block; margin: 0 auto;">
+				      <img src="${image}" alt="Pit Image" style="width:150px; height:150px; object-fit:cover;">
+				    </div><br>
+				  `;
 				}
 				
 				if (village && village !== '..') {
@@ -217,6 +222,7 @@
 
 </body>
 </html>
+
 
 
 
