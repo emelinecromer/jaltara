@@ -1,224 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<base target="_top">
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	
-	<title>JalTara Pit Map</title>
-	
-	<link rel="shortcut icon" type="image/png" href="https://images.squarespace-cdn.com/content/686b6207a7c996116ca9f6cc/0e917f42-0227-4261-8ad4-d14e1a1febab/%C2%A92_Save+Groundwater_icon_original_HD_png.png?content-type=image%2Fpng" />
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    	<!-- Leaflet CSS -->
-	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-	
-	<!-- Leaflet.markercluster CSS -->
-	<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-	<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-	
-	<!-- Leaflet JS -->
-	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-	
-	<!-- Leaflet.markercluster JS -->
-	<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <title>JalTara Pit Map</title>
 
+  <link rel="shortcut icon" type="image/png"
+        href="https://images.squarespace-cdn.com/content/686b6207a7c996116ca9f6cc/0e917f42-0227-4261-8ad4-d14e1a1febab/%C2%A92_Save+Groundwater_icon_original_HD_png.png?content-type=image%2Fpng" />
 
-	<style>
-		html, body {
-			height: 100%;
-			margin: 0;
-		}
-		.leaflet-container {
-			height: 800px;
-			width: 1600px;
-			max-width: 100%;
-			max-height: 100%;
-		}
-	</style>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-	
+  <!-- Leaflet.markercluster CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    .leaflet-container {
+      height: 800px;
+      width: 1600px;
+      max-width: 100%;
+      max-height: 100%;
+    }
+  </style>
 </head>
 <body>
+  <div id="map" style="width: 1600px; height: 800px;"></div>
 
+  <script>
+    function toTitleCase(str) {
+      str = str.split(' ');
+      str = str.map(word => word.charAt(0).toUpperCase() + word.slice(1));
+      return str.join(' ');
+    }
 
+    const map = L.map('map', {
+      center: [19.84529409208099, 76.27065167353523],
+      zoom: 5,
+      minZoom: 2,
+      maxZoom: 18
+    });
 
-<div id="map" style="width: 1600px; height: 800px;"></div>
-<script>
-
-	function toTitleCase(str) {
-		str = str.split(' ') // split at spaces
-		str = str.map(word => word.charAt(0).toUpperCase() + word.slice(1)) // capitalize first letter
-		str = str.join(' '); // join back into a single string
-
-		return str;
-	}
-	
-	const southWest = L.latLng(-90, -180); // bottom-left corner of the world
-	const northEast = L.latLng(90, 180);   // top-right corner of the world
-	const bounds = L.latLngBounds(southWest, northEast);
-	
-	const map = L.map('map', {
-  	center: [19.84529409208099, 76.27065167353523],
-  	zoom: 5,
-	minZoom: 2,
-	maxZoom: 18,
-	maxBounds: bounds,
-	maxBoundsViscosity: 0.0
-	});
-
-	// Satellite base layer
-	const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-	  attribution: 'Tiles &copy; Esri',
-	  maxZoom: 19
-	});
-
-	const street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-	  attribution: '© OpenStreetMap contributors',
-	  maxZoom: 19
-	}).addTo(map);
-	
-	// Transparent labels overlay (borders, roads, place names)
-	const labels = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-	  attribution: 'Labels &copy; Esri',
-	  maxZoom: 19
-	}).addTo(map);
-
-	const baseMaps = {
-	  "Satellite View": satellite,
-	  "Street View": street
-	};
-
-	// extend custom class ToggleControl from leaflet's Control class
-	const ToggleControl = L.Control.extend({
-		onAdd: function(map) {
-			// create new HTML button element
-			const btn = L.DomUtil.create('button', '');
-
-			// variable to track the currently active layer
-			let current = 'street';
-	
-	    	// text inside button
-	    	btn.innerHTML = "Satellite View";
-	
-		    // inline styling for button
-		    btn.style.backgroundColor = 'white';
-		    btn.style.padding = '5px';
-		    btn.style.cursor = 'pointer';
-		    btn.style.border = '1px solid gray';
-		
-		    btn.onclick = function() {
-			    // if satellite layer currently active
-			    if (current === 'satellite') {
-			        map.removeLayer(satellite);
-			        street.addTo(map);
-			        current = 'street';
-					btn.innerHTML = "Satellite View";
-			    } else {
-			    // if street layer currently active
-			        map.removeLayer(street);
-			        satellite.addTo(map);
-			        current = 'satellite';
-					btn.innerHTML = "Street View";
-		    	}
-			}
-	
-	    // return to place it on the map
-	    return btn;
-			
-		}
-	});
-
-	// create new ToggleControl button toggle and add to map
-	const toggle = new ToggleControl({ position: 'topright' });
-	toggle.addTo(map);
-
-	const markers = L.markerClusterGroup({
-	  maxClusterRadius: 30, // cluster markers within x pixels of each other
-	  spiderfyOnMaxZoom: true, // when at max zoom, clicking a cluster expands markers around it
-	  showCoverageOnHover: true, // highlight cluster area on mouseover
-	  disableClusteringAtZoom: 18
-	});
-
-	let minLat = Infinity;
-	let maxLat = -Infinity;
-	let minLon = Infinity;
-	let maxLon = -Infinity;
-
-	fetch('https://raw.githubusercontent.com/savegroundwater/jaltara/d25ca6ebcef06176a284c7eb0c49c106f56f47ba/pit_data.txt') // get file
-	.then(res => res.text()) // read as plain text
-	.then(text => {
-		const lines = text.trim().split('\n'); // split into lines
-
-		const header = lines.shift().split('\t'); // gives column names
-
-		lines.forEach(function(line) {
-			const columns = line.split('\t'); // splits into columns
-			
-			const pitId = columns[0];
-			const pitLat = parseFloat(columns[1]);
-			const pitLon = parseFloat(columns[2]);
-			const village = toTitleCase(columns[3]);
-			const type = columns[4];
-			const date = columns[5];
-			const image = columns[6].trim();
-
-			if (!isNaN(pitLat) && !isNaN(pitLon)) {
-		        if (pitLat < minLat) minLat = pitLat;
-		        if (pitLat > maxLat) maxLat = pitLat;
-		        if (pitLon < minLon) minLon = pitLon;
-		        if (pitLon > maxLon) maxLon = pitLon;
-
-				let popupContent = '<div style="text-align: center;">';
-
-				if (image && image !== '..') {
-				  popupContent += `
-				    <div style="width:150px; height:150px; overflow:hidden; display:block; margin: 0 auto;">
-				      <img src="${image}" alt="Pit Image" style="width:150px; height:150px; object-fit:cover;">
-				    </div><br>
-				  `;
-				}
-				
-				if (village && village !== '..') {
-				  popupContent += `<strong>Village:</strong> ${village}<br>`;
-				}
-				
-				if (date && date !== '..') {
-				  popupContent += `<strong>Date:</strong> ${date}`;
-				}
-				
-				popupContent += '</div>';
-
-				const marker = L.marker([pitLat, pitLon]);
-				marker.bindPopup(popupContent);
-
-				// Show popup on mouseover
-				marker.on('mouseover', function() {
-				this.openPopup();
-				});
-				
-				// Hide popup on mouseout
-				marker.on('mouseout', function() {
-				this.closePopup();
-				});
-				
-				markers.addLayer(marker);
-			}
-		});
-
-	map.addLayer(markers);
-
-	const bounds = L.latLngBounds(
-        L.latLng(minLat - 1, minLon - 1),
-        L.latLng(maxLat + 1, maxLon + 1)
+    // base layers
+    const satellite = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      { attribution: 'Tiles &copy; Esri', maxZoom: 19 }
     );
-    map.fitBounds(bounds);
 
-	});
+    const street = L.tileLayer(
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      { attribution: '© OpenStreetMap contributors', maxZoom: 19 }
+    ).addTo(map);
 
-	
-</script>
+    const labels = L.tileLayer(
+      'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+      { attribution: 'Labels &copy; Esri', maxZoom: 19 }
+    ).addTo(map);
 
+    // toggle map view control
+    const ToggleControl = L.Control.extend({
+      onAdd: function(map) {
+        const btn = L.DomUtil.create('button', '');
+        let current = 'street';
+        btn.innerHTML = "Satellite View";
+        btn.style.backgroundColor = 'white';
+        btn.style.padding = '5px';
+        btn.style.cursor = 'pointer';
+        btn.style.border = '1px solid gray';
 
+        btn.onclick = function() {
+          if (current === 'satellite') {
+            map.removeLayer(satellite);
+            street.addTo(map);
+            current = 'street';
+            btn.innerHTML = "Satellite View";
+          } else {
+            map.removeLayer(street);
+            satellite.addTo(map);
+            current = 'satellite';
+            btn.innerHTML = "Street View";
+          }
+        };
+        return btn;
+      }
+    });
+    new ToggleControl({ position: 'topright' }).addTo(map);
 
+    // bounds and cluster storage
+    let minLat = Infinity, maxLat = -Infinity;
+    let minLon = Infinity, maxLon = -Infinity;
+    let clusters = {};
+
+    // fetch pit data
+    fetch('https://raw.githubusercontent.com/savegroundwater/jaltara/d25ca6ebcef06176a284c7eb0c49c106f56f47ba/pit_data.txt')
+      .then(res => res.text())
+      .then(text => {
+        const lines = text.trim().split('\n');
+        lines.shift(); // remove header row
+
+        lines.forEach(line => {
+          const columns = line.split('\t');
+          const pitLat = parseFloat(columns[1]);
+          const pitLon = parseFloat(columns[2]);
+          const village = toTitleCase(columns[3]);
+          const date = columns[5];
+          const image = columns[6].trim();
+
+          if (!isNaN(pitLat) && !isNaN(pitLon)) {
+            // track bounds
+            minLat = Math.min(minLat, pitLat);
+            maxLat = Math.max(maxLat, pitLat);
+            minLon = Math.min(minLon, pitLon);
+            maxLon = Math.max(maxLon, pitLon);
+
+            // popup content
+            let popupContent = '<div style="text-align:center;">';
+            if (image && image !== '..') {
+              popupContent += `
+                <div style="width:150px; height:150px; overflow:hidden; margin:0 auto;">
+                  <img src="${image}" style="width:150px; height:150px; object-fit:cover;">
+                </div><br>
+              `;
+            }
+            if (village && village !== '..') {
+              popupContent += `<strong>Village:</strong> ${village}<br>`;
+            }
+            if (date && date !== '..') {
+              popupContent += `<strong>Date:</strong> ${date}`;
+            }
+            popupContent += '</div>';
+
+            const marker = L.marker([pitLat, pitLon]).bindPopup(popupContent);
+
+            marker.on('mouseover', function() { this.openPopup(); });
+            marker.on('mouseout', function() { this.closePopup(); });
+
+            // make sure cluster exists for village
+            if (!clusters[village]) {
+              clusters[village] = L.markerClusterGroup({
+                maxClusterRadius: 999999,
+                disableClusteringAtZoom: 18,
+                spiderfyOnMaxZoom: false,
+                showCoverageOnHover: false,
+                iconCreateFunction: function(cluster) {
+                  return L.divIcon({
+                    html: `<div style="background:#4a90e2; color:white; border-radius:50%;
+                                   width:40px; height:40px; display:flex; align-items:center;
+                                   justify-content:center; font-size:14px;">
+                             ${cluster.getChildCount()}
+                           </div>`,
+                    className: "village-cluster-icon",
+                    iconSize: [40, 40]
+                  });
+                }
+              });
+
+              clusters[village].on('clustermouseover', function(e) {
+                e.layer.bindPopup(`<b>Village:</b> ${village}`).openPopup();
+              });
+
+              map.addLayer(clusters[village]);
+            }
+
+            // add marker to that village's cluster
+            clusters[village].addLayer(marker);
+          }
+        });
+
+        // fit map to bounds
+        const bounds = L.latLngBounds(
+          L.latLng(minLat - 1, minLon - 1),
+          L.latLng(maxLat + 1, maxLon + 1)
+        );
+        map.fitBounds(bounds);
+      });
+  </script>
 </body>
 </html>
