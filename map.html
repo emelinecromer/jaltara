@@ -32,6 +32,9 @@
       max-width: 100%;
       max-height: 100%;
     }
+    .invisible-cluster-icon {
+    pointer-events: none; /* make the invisible icon unclickable */
+    }
   </style>
 </head>
 <body>
@@ -44,7 +47,20 @@
       return str.join(' ');
     }
 
-    // icon style that looks like cluster
+    // default cluster icon style (is a function given cluster)
+    const defaultClusterIcon = function(cluster) {
+      return L.divIcon({
+        html: `<div style="background:#4a90e2; color:white; border-radius:50%;
+                           width:40px; height:40px; display:flex; align-items:center;
+                           justify-content:center; font-size:14px;">
+                     ${cluster.getChildCount()}
+                   </div>`,
+        className: "village-cluster-icon",
+        iconSize: [40, 40]
+      });
+    };
+    
+    // marker style that looks like cluster
     const clusterStyleIcon = L.divIcon({
       html: `<div style="
                background:#4a90e2; 
@@ -72,6 +88,17 @@
              </div>`,
       className: "expanded-marker-icon",
       iconSize: [20, 20]
+    });
+
+    // invisible icon to hide things
+    const invisibleClusterIcon = L.divIcon({
+      html: `<div style="
+               width:40px;
+               height:40px;
+               background-color: rgba(0,0,0,0);  /* fully transparent */
+             "></div>`,
+      className: "invisible-cluster-icon",
+      iconSize: [1, 1]
     });
 
     const map = L.map('map', {
@@ -135,6 +162,10 @@
     let clickedZoom = null;
     const expandedMarkers = [];
 
+    // cluster click global vars
+    let currentUnclusteredMarkers = null;
+    let currentCluster = null;
+
     // fetch pit data
     fetch('https://raw.githubusercontent.com/savegroundwater/jaltara/d25ca6ebcef06176a284c7eb0c49c106f56f47ba/pit_data.txt')
       .then(res => res.text())
@@ -190,6 +221,7 @@
                 expandedMarkers.push(this);       // add it to expandedMarkers if not already there
               }
             });
+            
             map.on('zoomend', function() {
               if (clickedZoom != null && map.getZoom() < clickedZoom) {
                 expandedMarkers.forEach(m => {
@@ -198,6 +230,15 @@
                   m.closePopup();
                 });
                 expandedMarkers.length = 0;
+
+                if (currentUnclusteredMarkers != null && currentCluster != null) {
+                  currentUnclusteredMarkers.remove();
+                  currentUnclusteredMarkers = null;
+
+                  currentCluster.setIcon(defaultClusterIcon(currentCluster));
+                  currentCluster = null;
+                }
+                
                 clickedZoom = null;
               }
             });
@@ -206,19 +247,16 @@
             if (!clusters[village]) {
               clusters[village] = L.markerClusterGroup({
                 maxClusterRadius: 999999,
+                disableClusteringAtZoom: 20, // never disable clustering - i do this manually in clusterclick event
                 spiderfyOnMaxZoom: false,
-                zoomToBoundsOnClick: true,
+                zoomToBoundsOnClick: false,
                 showCoverageOnHover: false,
                 iconCreateFunction: function(cluster) {
-                  return L.divIcon({
-                    html: `<div style="background:#4a90e2; color:white; border-radius:50%;
-                                   width:40px; height:40px; display:flex; align-items:center;
-                                   justify-content:center; font-size:14px;">
-                             ${cluster.getChildCount()}
-                           </div>`,
-                    className: "village-cluster-icon",
-                    iconSize: [40, 40]
-                  });
+                    // if this cluster is the one currently clicked, return invisible icon
+                    if (cluster === currentCluster) {
+                        return invisibleClusterIcon;
+                    }
+                    return defaultClusterIcon(cluster);
                 }
               });
 
@@ -230,14 +268,22 @@
                 e.layer.closePopup();
               });
 
+              // handle cluster clicks
               clusters[village].on('clusterclick', function(e) {
                 clickedZoom = map.getZoom();
-                const markersIn = e.layer.getAllChildMarkers(); // get all markers in this cluster
-                markersIn.forEach(marker => {
-                  expandedMarkers.push(marker);
-                  marker.setIcon(expandedMarkerIcon); // example: change icon of each marker
+                currentCluster = e.layer;
+                
+                const currentMarkers = currentCluster.getAllChildMarkers(); // get all markers in this cluster
+                currentMarkers.forEach(marker => {
+                  marker.setIcon(expandedMarkerIcon);
                   marker.bindPopup(popupContent);
                 });
+
+              currentCluster.setIcon(invisibleClusterIcon);
+                
+              currentUnclusteredMarkers = L.layerGroup(currentMarkers);
+              currentUnclusteredMarkers.addTo(map);
+                
               });
   
               map.addLayer(clusters[village]);
@@ -259,6 +305,7 @@
   </script>
 </body>
 </html>
+
 
 
 
