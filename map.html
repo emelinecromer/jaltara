@@ -131,6 +131,10 @@
     let minLon = Infinity, maxLon = -Infinity;
     let clusters = {};
 
+    // marker click global vars
+    let clickedZoom = null;
+    const expandedMarkers = [];
+
     // fetch pit data
     fetch('https://raw.githubusercontent.com/savegroundwater/jaltara/d25ca6ebcef06176a284c7eb0c49c106f56f47ba/pit_data.txt')
       .then(res => res.text())
@@ -170,13 +174,26 @@
             }
             popupContent += '</div>';
 
+            // make the marker look like a cluster with only village in popup
             const marker = L.marker([pitLat, pitLon], { icon: clusterStyleIcon });
-
-            marker.bindPopup(popupContent);
+            marker.bindPopup(`<strong>Village:</strong> ${village}<br>`);
             
             marker.on('mouseover', function() { this.openPopup(); });
             marker.on('mouseout', function() { this.closePopup(); });
-            marker.on('click', function() { this.setIcon(expandedMarkerIcon); });
+            marker.on('click', function() {
+              this.setIcon(expandedMarkerIcon);
+              clickedZoom = map.getZoom();
+              if (!expandedMarkers.includes(this)) {
+                expandedMarkers.push(this);       // add it to expandedMarkers if not already there
+              }
+            });
+            map.on('zoomend', function() {
+              if (clickedZoom != null && map.getZoom() < clickedZoom) {
+                expandedMarkers.forEach(m => m.setIcon(clusterStyleIcon));
+                expandedMarkers.length = 0;
+                clickedZoom = null;
+              }
+            });
 
             // make sure cluster exists for village
             if (!clusters[village]) {
@@ -239,5 +256,6 @@
   </script>
 </body>
 </html>
+
 
 
