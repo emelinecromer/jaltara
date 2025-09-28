@@ -252,11 +252,11 @@
                 zoomToBoundsOnClick: false,
                 showCoverageOnHover: false,
                 iconCreateFunction: function(cluster) {
-                    // if this cluster is the one currently clicked, return invisible icon
-                    if (cluster === currentCluster) {
-                        return invisibleClusterIcon;
-                    }
-                    return defaultClusterIcon(cluster);
+                  // compare the cluster’s village property with currentCluster’s village
+                  if (currentCluster != null && cluster.options.villageName == currentCluster.options.villageName) {
+                    return invisibleClusterIcon;
+                  }
+                  return defaultClusterIcon(cluster);
                 }
               });
 
@@ -270,6 +270,23 @@
 
               // handle cluster clicks
               clusters[village].on('clusterclick', function(e) {
+                expandedMarkers.forEach(m => {
+                  m.setIcon(clusterStyleIcon);
+                  m.bindPopup(villagePopup);
+                  m.closePopup();
+                });
+                expandedMarkers.length = 0;
+
+                if (currentUnclusteredMarkers != null && currentCluster != null) {
+                  currentUnclusteredMarkers.remove();
+                  currentUnclusteredMarkers = null;
+
+                  currentCluster.setIcon(defaultClusterIcon(currentCluster));
+                  currentCluster = null;
+                }
+                
+                clickedZoom = null;
+                
                 clickedZoom = map.getZoom();
                 currentCluster = e.layer;
                 
@@ -305,6 +322,7 @@
   </script>
 </body>
 </html>
+
 
 
 
