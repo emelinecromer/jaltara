@@ -198,9 +198,10 @@
             // make sure cluster exists for village
             if (!clusters[village]) {
               clusters[village] = L.markerClusterGroup({
+                disableClusteringAtZoom: 18,
                 maxClusterRadius: 999999,
                 spiderfyOnMaxZoom: false,
-                zoomToBoundsOnClick: false,
+                zoomToBoundsOnClick: true,
                 showCoverageOnHover: false,
                 iconCreateFunction: function(cluster) {
                   return L.divIcon({
@@ -224,18 +225,18 @@
               });
 
               // on cluster click get rid of cluster bubble and show the actual markers
-            clusters[village].on('clusterclick', function(e) {
-              const markers = e.layer.getAllChildMarkers();
+        //     clusters[village].on('clusterclick', function(e) {
+        //       const markers = e.layer.getAllChildMarkers();
             
-              // remove the cluster
-              clusters[village].removeLayer(e.layer);
+        //       // remove the cluster
+        //       clusters[village].removeLayer(e.layer);
             
-              // add back each child marker
-              markers.forEach(m => {
-                m.setIcon(expandedMarkerIcon);
-                clusters[village].addLayer(m);
-              });
-            });
+        //       // add back each child marker
+        //       markers.forEach(m => {
+        //         m.setIcon(expandedMarkerIcon);
+        //         clusters[village].addLayer(m);
+        //       });
+        //     });
 
               map.addLayer(clusters[village]);
             }
@@ -256,6 +257,7 @@
   </script>
 </body>
 </html>
+
 
 
 
