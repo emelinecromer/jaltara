@@ -44,22 +44,34 @@
       return str.join(' ');
     }
 
-    // make markers look like clusters with a "1"
-    const singleMarkerIcon = L.divIcon({
+    // icon style that looks like cluster
+    const clusterStyleIcon = L.divIcon({
       html: `<div style="
-                   background:#4a90e2; 
-                   color:white; 
-                   border-radius:50%; 
-                   width:40px; 
-                   height:40px; 
-                   display:flex; 
-                   align-items:center; 
-                   justify-content:center; 
-                   font-size:14px;">
+               background:#4a90e2; 
+               color:white; 
+               border-radius:50%; 
+               width:40px; 
+               height:40px; 
+               display:flex; 
+               align-items:center; 
+               justify-content:center; 
+               font-size:14px;">
                1
              </div>`,
       className: "village-cluster-icon",
       iconSize: [40, 40]
+    });
+    
+    // icon style after expanding
+    const expandedMarkerIcon = L.divIcon({
+      html: `<div style="
+               background:#2a2a2a; 
+               border-radius:50%; 
+               width:20px; 
+               height:20px;">
+             </div>`,
+      className: "expanded-marker-icon",
+      iconSize: [20, 20]
     });
 
     const map = L.map('map', {
@@ -158,17 +170,20 @@
             }
             popupContent += '</div>';
 
-            const marker = L.marker([pitLat, pitLon], { icon: singleMarkerIcon });
+            const marker = L.marker([pitLat, pitLon], { icon: clusterStyleIcon });
+
+            marker.bindPopup(popupContent);
             
             marker.on('mouseover', function() { this.openPopup(); });
             marker.on('mouseout', function() { this.closePopup(); });
+            marker.on('click', function() { this.setIcon(expandedMarkerIcon); });
 
             // make sure cluster exists for village
             if (!clusters[village]) {
               clusters[village] = L.markerClusterGroup({
                 maxClusterRadius: 999999,
-                disableClusteringAtZoom: 18,
                 spiderfyOnMaxZoom: false,
+                zoomToBoundsOnClick: false,
                 showCoverageOnHover: false,
                 iconCreateFunction: function(cluster) {
                   return L.divIcon({
@@ -187,11 +202,30 @@
                 e.layer.bindPopup(`<b>Village:</b> ${village}`).openPopup();
               });
 
+              clusters[village].on('clustermouseout', function(e) {
+                e.layer.closePopup();
+              });
+
+              // on cluster click get rid of cluster bubble and show the actual markers
+            clusters[village].on('clusterclick', function(e) {
+              const markers = e.layer.getAllChildMarkers();
+            
+              // remove the cluster
+              clusters[village].removeLayer(e.layer);
+            
+              // add back each child marker
+              markers.forEach(m => {
+                m.setIcon(expandedMarkerIcon);
+                clusters[village].addLayer(m);
+              });
+            });
+
               map.addLayer(clusters[village]);
             }
 
             // add marker to that village's cluster
             clusters[village].addLayer(marker);
+
           }
         });
 
@@ -205,4 +239,5 @@
   </script>
 </body>
 </html>
+
 
