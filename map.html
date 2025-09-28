@@ -174,14 +174,17 @@
             }
             popupContent += '</div>';
 
+            const villagePopup = `<strong>Village:</strong> ${village}<br>`;
+
             // make the marker look like a cluster with only village in popup
             const marker = L.marker([pitLat, pitLon], { icon: clusterStyleIcon });
-            marker.bindPopup(`<strong>Village:</strong> ${village}<br>`);
+            marker.bindPopup(villagePopup);
             
             marker.on('mouseover', function() { this.openPopup(); });
             marker.on('mouseout', function() { this.closePopup(); });
             marker.on('click', function() {
               this.setIcon(expandedMarkerIcon);
+              this.bindPopup(popupContent);
               clickedZoom = map.getZoom();
               if (!expandedMarkers.includes(this)) {
                 expandedMarkers.push(this);       // add it to expandedMarkers if not already there
@@ -189,7 +192,11 @@
             });
             map.on('zoomend', function() {
               if (clickedZoom != null && map.getZoom() < clickedZoom) {
-                expandedMarkers.forEach(m => m.setIcon(clusterStyleIcon));
+                expandedMarkers.forEach(m => {
+                  m.setIcon(clusterStyleIcon);
+                  m.bindPopup(villagePopup);
+                  m.closePopup();
+                });
                 expandedMarkers.length = 0;
                 clickedZoom = null;
               }
@@ -198,7 +205,7 @@
             // make sure cluster exists for village
             if (!clusters[village]) {
               clusters[village] = L.markerClusterGroup({
-                disableClusteringAtZoom: 18,
+                disableClusteringAtZoom: 17,
                 maxClusterRadius: 999999,
                 spiderfyOnMaxZoom: false,
                 zoomToBoundsOnClick: true,
@@ -224,20 +231,10 @@
                 e.layer.closePopup();
               });
 
-              // on cluster click get rid of cluster bubble and show the actual markers
-        //     clusters[village].on('clusterclick', function(e) {
-        //       const markers = e.layer.getAllChildMarkers();
-            
-        //       // remove the cluster
-        //       clusters[village].removeLayer(e.layer);
-            
-        //       // add back each child marker
-        //       markers.forEach(m => {
-        //         m.setIcon(expandedMarkerIcon);
-        //         clusters[village].addLayer(m);
-        //       });
-        //     });
-
+              // clusters[village].on('clusterclick', function(e) {
+                // pass
+              // }
+  
               map.addLayer(clusters[village]);
             }
 
@@ -257,6 +254,7 @@
   </script>
 </body>
 </html>
+
 
 
 
