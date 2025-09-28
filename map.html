@@ -249,16 +249,18 @@
                 maxClusterRadius: 999999,
                 disableClusteringAtZoom: 20, // never disable clustering - i do this manually in clusterclick event
                 spiderfyOnMaxZoom: false,
-                zoomToBoundsOnClick: false,
+                zoomToBoundsOnClick: true,
                 showCoverageOnHover: false,
                 iconCreateFunction: function(cluster) {
                   // compare the cluster’s village property with currentCluster’s village
-                  if (currentCluster != null && cluster.options.villageName == currentCluster.options.villageName) {
+                  if (currentCluster && cluster.villageName == currentCluster.villageName) {
                     return invisibleClusterIcon;
                   }
                   return defaultClusterIcon(cluster);
                 }
               });
+
+              clusters[village].villageName = village;
 
               clusters[village].on('clustermouseover', function(e) {
                 e.layer.bindPopup(`<b>Village:</b> ${village}`).openPopup();
@@ -322,6 +324,7 @@
   </script>
 </body>
 </html>
+
 
 
 
