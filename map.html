@@ -205,7 +205,6 @@
             // make sure cluster exists for village
             if (!clusters[village]) {
               clusters[village] = L.markerClusterGroup({
-                disableClusteringAtZoom: 17,
                 maxClusterRadius: 999999,
                 spiderfyOnMaxZoom: false,
                 zoomToBoundsOnClick: true,
@@ -231,9 +230,15 @@
                 e.layer.closePopup();
               });
 
-              // clusters[village].on('clusterclick', function(e) {
-                // pass
-              // }
+              clusters[village].on('clusterclick', function(e) {
+                clickedZoom = map.getZoom();
+                const markersIn = e.layer.getAllChildMarkers(); // get all markers in this cluster
+                markersIn.forEach(marker => {
+                  expandedMarkers.push(marker);
+                  marker.setIcon(expandedMarkerIcon); // example: change icon of each marker
+                  marker.bindPopup(popupContent);
+                });
+              });
   
               map.addLayer(clusters[village]);
             }
