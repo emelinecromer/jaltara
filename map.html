@@ -10,16 +10,22 @@
   <link rel="shortcut icon" type="image/png"
         href="https://images.squarespace-cdn.com/content/686b6207a7c996116ca9f6cc/0e917f42-0227-4261-8ad4-d14e1a1febab/%C2%A92_Save+Groundwater_icon_original_HD_png.png?content-type=image%2Fpng" />
 
-  <!-- Leaflet CSS -->
+  <!-- leaflet css -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-  <!-- Leaflet.markercluster CSS -->
+  <!-- markercluster css -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 
-  <!-- Leaflet JS -->
+  <!-- fullscreen css -->
+  <link rel="stylesheet" href="https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css" />
+
+  <!-- leaflet and markercluster js -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+  <!-- fullscreen js -->
+  <script src="https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js"></script>
 
   <style>
     html, body {
@@ -122,7 +128,8 @@
       maxBounds: [
         [-90, -180],  // southwest corner
         [90, 180]     // northeast corner
-      ]
+      ],
+      fullscreenControl: true
     });
 
     // base layers
