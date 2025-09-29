@@ -50,9 +50,18 @@
     // default cluster icon style (is a function given cluster)
     const defaultClusterIcon = function(cluster) {
       return L.divIcon({
-        html: `<div style="background:#4a90e2; color:white; border-radius:50%;
-                           width:40px; height:40px; display:flex; align-items:center;
-                           justify-content:center; font-size:14px;">
+        html: `<div style="
+                  background:#009C9D;
+                  color:white;
+                  border-radius:50%;
+                  border: 1px solid #004E4F;
+                  width:40px;
+                  height:40px;
+                  display:flex;
+                  align-items:center;
+                  justify-content:center;
+                  font-family: 'Courier New', monospace;
+                  font-size:14px;">
                      ${cluster.getChildCount()}
                    </div>`,
         className: "village-cluster-icon",
@@ -63,14 +72,16 @@
     // marker style that looks like cluster
     const clusterStyleIcon = L.divIcon({
       html: `<div style="
-               background:#4a90e2; 
+               background:#009C9D; 
                color:white; 
-               border-radius:50%; 
+               border-radius:50%;
+               border: 1px solid #004E4F;
                width:40px; 
                height:40px; 
                display:flex; 
                align-items:center; 
                justify-content:center; 
+               font-family: 'Courier New', monospace;
                font-size:14px;">
                1
              </div>`,
@@ -81,13 +92,14 @@
     // icon style after expanding
     const expandedMarkerIcon = L.divIcon({
       html: `<div style="
-               background:#2a2a2a; 
-               border-radius:50%; 
-               width:20px; 
-               height:20px;">
+               background:#80CECE; 
+               border-radius:50%;
+               border: 1px solid #009C9D;
+               width:15px; 
+               height:15px;">
              </div>`,
       className: "expanded-marker-icon",
-      iconSize: [20, 20]
+      iconSize: [15, 15]
     });
 
     // invisible icon to hide things
@@ -331,6 +343,7 @@
   </script>
 </body>
 </html>
+
 
 
 
