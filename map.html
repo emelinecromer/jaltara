@@ -117,12 +117,12 @@
     const satellite = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       { attribution: 'Tiles &copy; Esri', maxZoom: 19 }
-    );
+    ).addTo(map);
 
     const street = L.tileLayer(
       'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       { attribution: '© OpenStreetMap contributors', maxZoom: 19 }
-    ).addTo(map);
+    );
 
     const labels = L.tileLayer(
       'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
@@ -133,15 +133,15 @@
     const ToggleControl = L.Control.extend({
       onAdd: function(map) {
         const btn = L.DomUtil.create('button', '');
-        let current = 'street';
-        btn.innerHTML = "Satellite View";
+        let current = 'satellite';
+        btn.innerHTML = "Street View";
         btn.style.backgroundColor = 'white';
         btn.style.padding = '5px';
         btn.style.cursor = 'pointer';
         btn.style.border = '1px solid gray';
 
         btn.onclick = function() {
-          if (current === 'satellite') {
+          if (current == 'satellite') {
             map.removeLayer(satellite);
             street.addTo(map);
             current = 'street';
@@ -331,6 +331,7 @@
   </script>
 </body>
 </html>
+
 
 
 
