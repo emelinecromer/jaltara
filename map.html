@@ -93,8 +93,8 @@
     // invisible icon to hide things
     const invisibleClusterIcon = L.divIcon({
       html: `<div style="
-               width:40px;
-               height:40px;
+               width:1px;
+               height:1px;
                background-color: rgba(0,0,0,0);  /* fully transparent */
              "></div>`,
       className: "invisible-cluster-icon",
@@ -105,7 +105,12 @@
       center: [19.84529409208099, 76.27065167353523],
       zoom: 5,
       minZoom: 2,
-      maxZoom: 18
+      maxZoom: 18,
+      worldCopyJump: false,   // prevent snapping across worlds
+      maxBounds: [
+        [-90, -180],  // southwest corner
+        [90, 180]     // northeast corner
+      ]
     });
 
     // base layers
@@ -213,6 +218,8 @@
             
             marker.on('mouseover', function() { this.openPopup(); });
             marker.on('mouseout', function() { this.closePopup(); });
+            
+// marker clicks
             marker.on('click', function() {
               this.setIcon(expandedMarkerIcon);
               this.bindPopup(popupContent);
@@ -221,9 +228,10 @@
                 expandedMarkers.push(this);       // add it to expandedMarkers if not already there
               }
             });
-            
+
+// zoomend
             map.on('zoomend', function() {
-              if (clickedZoom != null && map.getZoom() < clickedZoom) {
+              if (map.getZoom() < 13) {
                 expandedMarkers.forEach(m => {
                   m.setIcon(clusterStyleIcon);
                   m.bindPopup(villagePopup);
@@ -247,13 +255,14 @@
             if (!clusters[village]) {
               clusters[village] = L.markerClusterGroup({
                 maxClusterRadius: 999999,
-                disableClusteringAtZoom: 20, // never disable clustering - i do this manually in clusterclick event
+                disableClusteringAtZoom: 20, // never uncluster - this is controlled manually in clusterclick event
                 spiderfyOnMaxZoom: false,
                 zoomToBoundsOnClick: true,
                 showCoverageOnHover: false,
+// cluster iconcreatefunction
                 iconCreateFunction: function(cluster) {
                   // compare the cluster’s village property with currentCluster’s village
-                  if (currentCluster && cluster.villageName == currentCluster.villageName) {
+                  if (currentCluster != null && cluster.villageName != null && cluster.villageName == currentCluster.villageName) {
                     return invisibleClusterIcon;
                   }
                   return defaultClusterIcon(cluster);
@@ -270,7 +279,7 @@
                 e.layer.closePopup();
               });
 
-              // handle cluster clicks
+// cluster clicks
               clusters[village].on('clusterclick', function(e) {
                 expandedMarkers.forEach(m => {
                   m.setIcon(clusterStyleIcon);
@@ -287,8 +296,6 @@
                   currentCluster = null;
                 }
                 
-                clickedZoom = null;
-                
                 clickedZoom = map.getZoom();
                 currentCluster = e.layer;
                 
@@ -301,11 +308,11 @@
               currentCluster.setIcon(invisibleClusterIcon);
                 
               currentUnclusteredMarkers = L.layerGroup(currentMarkers);
-              currentUnclusteredMarkers.addTo(map);
-                
+              currentUnclusteredMarkers.addTo(map)
               });
   
               map.addLayer(clusters[village]);
+              
             }
 
             // add marker to that village's cluster
