@@ -199,12 +199,13 @@
 
         lines.forEach(line => {
           const columns = line.split('\t');
-          const pitLat = parseFloat(columns[1]);
-          const pitLon = parseFloat(columns[2]);
-          const village = toTitleCase(columns[3]);
-          const date = columns[5];
-          const image = columns[6].trim();
-
+          // make sure data is right
+          const pitLat = parseFloat((columns[1] || '').trim()) || '';
+          const pitLon = parseFloat((columns[2] || '').trim()) || '';
+          const village = (columns[3] || '').trim() ? toTitleCase(columns[3].trim()) : '';
+          const date = (columns[5] || '').trim();
+          const image = (columns[6] || '').trim();
+          
           if (!isNaN(pitLat) && !isNaN(pitLon)) {
             // track bounds
             minLat = Math.min(minLat, pitLat);
@@ -214,17 +215,17 @@
 
             // popup content
             let popupContent = '<div style="text-align:center;">';
-            if (image && image !== '..') {
+            if (image && image !== '--') {
               popupContent += `
                 <div style="width:150px; height:150px; overflow:hidden; margin:0 auto;">
                   <img src="${image}" style="width:150px; height:150px; object-fit:cover;">
                 </div><br>
               `;
             }
-            if (village && village !== '..') {
+            if (village && village !== '--') {
               popupContent += `<strong>Village:</strong> ${village}<br>`;
             }
-            if (date && date !== '..') {
+            if (date && date !== '--') {
               popupContent += `<strong>Date:</strong> ${date}`;
             }
             popupContent += '</div>';
@@ -233,7 +234,10 @@
 
             // make the marker look like a cluster with only village in popup
             const marker = L.marker([pitLat, pitLon], { icon: clusterStyleIcon });
-            marker.bindPopup(villagePopup);
+            marker.villagePopup = villagePopup;
+            marker.popupContent = popupContent;
+
+            marker.bindPopup(marker.villagePopup);
             
             marker.on('mouseover', function() { this.openPopup(); });
             marker.on('mouseout', function() { this.closePopup(); });
@@ -241,7 +245,7 @@
 // marker clicks
             marker.on('click', function() {
               this.setIcon(expandedMarkerIcon);
-              this.bindPopup(popupContent);
+              this.bindPopup(this.popupContent);
               clickedZoom = map.getZoom();
               if (!expandedMarkers.includes(this)) {
                 expandedMarkers.push(this);       // add it to expandedMarkers if not already there
@@ -253,7 +257,7 @@
               if (map.getZoom() < 13) {
                 expandedMarkers.forEach(m => {
                   m.setIcon(clusterStyleIcon);
-                  m.bindPopup(villagePopup);
+                  m.bindPopup(m.villagePopup);
                   m.closePopup();
                 });
                 expandedMarkers.length = 0;
@@ -302,7 +306,7 @@
               clusters[village].on('clusterclick', function(e) {
                 expandedMarkers.forEach(m => {
                   m.setIcon(clusterStyleIcon);
-                  m.bindPopup(villagePopup);
+                  m.bindPopup(m.villagePopup);
                   m.closePopup();
                 });
                 expandedMarkers.length = 0;
@@ -321,7 +325,7 @@
                 const currentMarkers = currentCluster.getAllChildMarkers(); // get all markers in this cluster
                 currentMarkers.forEach(marker => {
                   marker.setIcon(expandedMarkerIcon);
-                  marker.bindPopup(popupContent);
+                  marker.bindPopup(marker.popupContent);
                 });
 
               currentCluster.setIcon(invisibleClusterIcon);
