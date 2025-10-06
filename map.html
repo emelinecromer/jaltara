@@ -244,6 +244,23 @@
             
 // marker clicks
             marker.on('click', function() {
+              expandedMarkers.forEach(m => {
+                m.setIcon(clusterStyleIcon);
+                m.bindPopup(m.villagePopup);
+                m.closePopup();
+              });
+              expandedMarkers.length = 0;
+
+              if (currentUnclusteredMarkers != null && currentCluster != null) {
+                currentUnclusteredMarkers.remove();
+                currentUnclusteredMarkers = null;
+
+                currentCluster.setIcon(defaultClusterIcon(currentCluster));
+                currentCluster = null;
+              }
+              
+              clickedZoom = null;
+              
               this.setIcon(expandedMarkerIcon);
               this.bindPopup(this.popupContent);
               clickedZoom = map.getZoom();
@@ -285,9 +302,9 @@
 // cluster iconcreatefunction
                 iconCreateFunction: function(cluster) {
                   // compare the cluster’s village property with currentCluster’s village
-                  if (currentCluster != null && cluster.villageName != null && cluster.villageName == currentCluster.villageName) {
-                    return invisibleClusterIcon;
-                  }
+                  // if (currentCluster != null && cluster.villageName != null && cluster.villageName == currentCluster.villageName) {
+                  //   return invisibleClusterIcon;
+                  // }
                   return defaultClusterIcon(cluster);
                 }
               });
@@ -354,3 +371,4 @@
   </script>
 </body>
 </html>
+
