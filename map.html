@@ -53,6 +53,25 @@
       return str.join(' ');
     }
 
+    function clearMap() {
+      expandedMarkers.forEach(m => {
+        m.setIcon(clusterStyleIcon);
+        m.bindPopup(m.villagePopup);
+        m.closePopup();
+      });
+      expandedMarkers.length = 0;
+  
+      if (currentUnclusteredMarkers != null && currentCluster != null) {
+        currentUnclusteredMarkers.remove();
+        currentUnclusteredMarkers = null;
+  
+        currentCluster.setIcon(defaultClusterIcon(currentCluster));
+        currentCluster = null;
+      }
+      
+      clickedZoom = null;
+    }
+
     // default cluster icon style (is a function given cluster)
     const defaultClusterIcon = function(cluster) {
       return L.divIcon({
@@ -244,22 +263,7 @@
             
 // marker clicks
             marker.on('click', function() {
-              expandedMarkers.forEach(m => {
-                m.setIcon(clusterStyleIcon);
-                m.bindPopup(m.villagePopup);
-                m.closePopup();
-              });
-              expandedMarkers.length = 0;
-
-              if (currentUnclusteredMarkers != null && currentCluster != null) {
-                currentUnclusteredMarkers.remove();
-                currentUnclusteredMarkers = null;
-
-                currentCluster.setIcon(defaultClusterIcon(currentCluster));
-                currentCluster = null;
-              }
-              
-              clickedZoom = null;
+              clearMap()
               
               this.setIcon(expandedMarkerIcon);
               this.bindPopup(this.popupContent);
@@ -272,22 +276,7 @@
 // zoomend
             map.on('zoomend', function() {
               if (map.getZoom() < 13) {
-                expandedMarkers.forEach(m => {
-                  m.setIcon(clusterStyleIcon);
-                  m.bindPopup(m.villagePopup);
-                  m.closePopup();
-                });
-                expandedMarkers.length = 0;
-
-                if (currentUnclusteredMarkers != null && currentCluster != null) {
-                  currentUnclusteredMarkers.remove();
-                  currentUnclusteredMarkers = null;
-
-                  currentCluster.setIcon(defaultClusterIcon(currentCluster));
-                  currentCluster = null;
-                }
-                
-                clickedZoom = null;
+                clearMap();
               }
             });
 
@@ -321,20 +310,7 @@
 
 // cluster clicks
               clusters[village].on('clusterclick', function(e) {
-                expandedMarkers.forEach(m => {
-                  m.setIcon(clusterStyleIcon);
-                  m.bindPopup(m.villagePopup);
-                  m.closePopup();
-                });
-                expandedMarkers.length = 0;
-
-                if (currentUnclusteredMarkers != null && currentCluster != null) {
-                  currentUnclusteredMarkers.remove();
-                  currentUnclusteredMarkers = null;
-
-                  currentCluster.setIcon(defaultClusterIcon(currentCluster));
-                  currentCluster = null;
-                }
+                clearMap()
                 
                 clickedZoom = map.getZoom();
                 currentCluster = e.layer;
@@ -371,4 +347,5 @@
   </script>
 </body>
 </html>
+
 
