@@ -65,11 +65,13 @@
         currentUnclusteredMarkers.remove();
         currentUnclusteredMarkers = null;
   
-        currentCluster.setIcon(defaultClusterIcon(currentCluster));
+        map.addLayer(currentClusterGroup);
+        
+        currentClusterGroup = null;
         currentCluster = null;
       }
       
-      clickedZoom = null;
+      boundsZoom = null;
     }
 
     // default cluster icon style (is a function given cluster)
@@ -202,12 +204,13 @@
     let clusters = {};
 
     // marker click global vars
-    let clickedZoom = null;
+    let boundsZoom = null;
     const expandedMarkers = [];
 
     // cluster click global vars
     let currentUnclusteredMarkers = null;
     let currentCluster = null;
+    let currentClusterGroup = null;
 
     // fetch pit data
     fetch('https://raw.githubusercontent.com/savegroundwater/jaltara/d25ca6ebcef06176a284c7eb0c49c106f56f47ba/pit_data.txt')
@@ -263,25 +266,30 @@
             
 // marker clicks
             marker.on('click', function() {
-              clearMap()
-              
-              this.setIcon(expandedMarkerIcon);
-              this.bindPopup(this.popupContent);
-              clickedZoom = map.getZoom();
-              if (!expandedMarkers.includes(this)) {
-                expandedMarkers.push(this);       // add it to expandedMarkers if not already there
-              }
-            });
+                clearMap();
+                
+                this.setIcon(expandedMarkerIcon);
+                this.bindPopup(this.popupContent);
+  
+                const coords = this.getLatLng();
+  
+                map.flyTo([coords.lat, coords.lng], 18, { animate: true, duration: 0.5 });
+                boundsZoom = 18;
+                
+                if (!expandedMarkers.includes(this)) {
+                  expandedMarkers.push(this);       // add it to expandedMarkers if not already there
+                }
+              });
 
 // zoomend
             map.on('zoomend', function() {
-              if (map.getZoom() < 13) {
+              if (boundsZoom != null && map.getZoom() < (boundsZoom - 1)) {
                 clearMap();
               }
             });
 
             // make sure cluster exists for village
-            if (!clusters[village]) {
+            if (!clusters[village] && (currentCluster == null || currentCluster.villageName != village)) {
               clusters[village] = L.markerClusterGroup({
                 maxClusterRadius: 999999,
                 disableClusteringAtZoom: 20, // never uncluster - this is controlled manually in clusterclick event
@@ -290,10 +298,6 @@
                 showCoverageOnHover: false,
 // cluster iconcreatefunction
                 iconCreateFunction: function(cluster) {
-                  // compare the cluster’s village property with currentCluster’s village
-                  // if (currentCluster != null && cluster.villageName != null && cluster.villageName == currentCluster.villageName) {
-                  //   return invisibleClusterIcon;
-                  // }
                   return defaultClusterIcon(cluster);
                 }
               });
@@ -310,10 +314,11 @@
 
 // cluster clicks
               clusters[village].on('clusterclick', function(e) {
-                clearMap()
+                clearMap();
                 
-                clickedZoom = map.getZoom();
                 currentCluster = e.layer;
+                currentCluster.villageName = village;
+                currentClusterGroup = clusters[village];
                 
                 const currentMarkers = currentCluster.getAllChildMarkers(); // get all markers in this cluster
                 currentMarkers.forEach(marker => {
@@ -321,10 +326,14 @@
                   marker.bindPopup(marker.popupContent);
                 });
 
-              currentCluster.setIcon(invisibleClusterIcon);
+              map.removeLayer(currentClusterGroup);
                 
               currentUnclusteredMarkers = L.layerGroup(currentMarkers);
               currentUnclusteredMarkers.addTo(map)
+
+              map.flyToBounds(currentCluster.getBounds(), { padding: [50, 50], maxZoom: 18, animate: true, duration: 0.5 });
+              boundsZoom = map.getBoundsZoom(currentCluster.getBounds());
+              
               });
   
               map.addLayer(clusters[village]);
@@ -347,5 +356,6 @@
   </script>
 </body>
 </html>
+
 
 
