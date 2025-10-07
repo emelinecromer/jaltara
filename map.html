@@ -256,6 +256,7 @@
 
             // make the marker look like a cluster with only village in popup
             const marker = L.marker([pitLat, pitLon], { icon: clusterStyleIcon });
+            marker.villageName = village;
             marker.villagePopup = villagePopup;
             marker.popupContent = popupContent;
 
@@ -266,6 +267,7 @@
             
 // marker clicks
             marker.on('click', function() {
+              if (currentCluster == null || marker.villageName != currentCluster.villageName) {
                 clearMap();
                 
                 this.setIcon(expandedMarkerIcon);
@@ -273,12 +275,13 @@
   
                 const coords = this.getLatLng();
   
-                map.flyTo([coords.lat, coords.lng], 18, { animate: true, duration: 0.5 });
-                boundsZoom = 18;
+                map.flyTo([coords.lat, coords.lng], 16, { animate: true, duration: 0.5 });
+                boundsZoom = 16;
                 
                 if (!expandedMarkers.includes(this)) {
                   expandedMarkers.push(this);       // add it to expandedMarkers if not already there
                 }
+              }
               });
 
 // zoomend
@@ -356,6 +359,7 @@
   </script>
 </body>
 </html>
+
 
 
 
