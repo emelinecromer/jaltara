@@ -61,7 +61,7 @@
       });
       expandedMarkers.length = 0;
   
-      if (currentUnclusteredMarkers != null && currentCluster != null) {
+      if ( currentUnclusteredMarkers != null && currentCluster != null ) {
         currentUnclusteredMarkers.remove();
         currentUnclusteredMarkers = null;
   
@@ -181,7 +181,7 @@
         btn.style.border = '1px solid gray';
 
         btn.onclick = function() {
-          if (current == 'satellite') {
+          if ( current == 'satellite' ) {
             map.removeLayer(satellite);
             street.addTo(map);
             current = 'street';
@@ -228,7 +228,7 @@
           const date = (columns[5] || '').trim();
           const image = (columns[6] || '').trim();
           
-          if (!isNaN(pitLat) && !isNaN(pitLon)) {
+          if ( !isNaN(pitLat) && !isNaN(pitLon) ) {
             // track bounds
             minLat = Math.min(minLat, pitLat);
             maxLat = Math.max(maxLat, pitLat);
@@ -237,17 +237,17 @@
 
             // popup content
             let popupContent = '<div style="text-align:center;">';
-            if (image && image !== '--') {
+            if ( image && image !== '--' ) {
               popupContent += `
                 <div style="width:150px; height:150px; overflow:hidden; margin:0 auto;">
                   <img src="${image}" style="width:150px; height:150px; object-fit:cover;">
                 </div><br>
               `;
             }
-            if (village && village !== '--') {
+            if ( village && village !== '--' ) {
               popupContent += `<strong>Village:</strong> ${village}<br>`;
             }
-            if (date && date !== '--') {
+            if ( date && date !== '--' ) {
               popupContent += `<strong>Date:</strong> ${date}`;
             }
             popupContent += '</div>';
@@ -267,7 +267,7 @@
             
 // marker clicks
             marker.on('click', function() {
-              if (currentCluster == null || marker.villageName != currentCluster.villageName) {
+              if ( (currentCluster == null || marker.villageName != currentCluster.villageName) && expandedMarkers.length == 0 ) {
                 clearMap();
                 
                 this.setIcon(expandedMarkerIcon);
@@ -278,21 +278,23 @@
                 map.flyTo([coords.lat, coords.lng], 16, { animate: true, duration: 0.5 });
                 boundsZoom = 16;
                 
-                if (!expandedMarkers.includes(this)) {
+                if ( !expandedMarkers.includes(this) ) {
                   expandedMarkers.push(this);       // add it to expandedMarkers if not already there
                 }
+              } else if ( expandedMarkers.length > 0 || marker.villageName == currentCluster.villageName ) {
+                clearMap();
               }
               });
 
 // zoomend
             map.on('zoomend', function() {
-              if (boundsZoom != null && map.getZoom() < (boundsZoom - 1)) {
+              if ( boundsZoom != null && map.getZoom() < (boundsZoom - 1) ) {
                 clearMap();
               }
             });
 
             // make sure cluster exists for village
-            if (!clusters[village] && (currentCluster == null || currentCluster.villageName != village)) {
+            if ( !clusters[village] && (currentCluster == null || currentCluster.villageName != village) ) {
               clusters[village] = L.markerClusterGroup({
                 maxClusterRadius: 999999,
                 disableClusteringAtZoom: 20, // never uncluster - this is controlled manually in clusterclick event
